@@ -75,7 +75,7 @@ cd apps/lms/docker
 docker-compose up
 ```
 
-Wait for some time until the setup script creates a site. After that, you can access `http://localhost` in your browser and the app's login screen should show up.
+Wait for some time until the setup script creates a site. After that, you can access `http://localhost:8000` in your browser and the app's login screen should show up.
 
 ### Frappe Bench
 
@@ -90,7 +90,7 @@ Currently, this app depends on the `develop` branch of [frappe](https://github.c
     bench --site lms.test install-app lms
     bench --site lms.test add-to-hosts
 
- 2. Now, you can access the site at `http://lms.test`
+ 1. Now, you can access the site at `http://lms.test:8000`
 
 
 ## Deployment
