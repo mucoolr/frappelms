@@ -9,81 +9,23 @@ services:
       - --skip-innodb-read-only-compressed # Temporary fix for MariaDB 10.6
     environment:
       MYSQL_ROOT_PASSWORD: 123
-    restart: unless-stopped
-    networks:
-      - traefik_net
     volumes:
       - mariadb-data:/var/lib/mysql
- 
+
   redis:
     image: redis:alpine
-    restart: unless-stopped
-    networks:
-      - traefik_net
 
   frappe:
     image: frappe/bench:latest
-    command: bash "/workspace/init.sh"
+    command: bash /workspace/init.sh
     environment:
       - SHELL=/bin/bash
     working_dir: /home/frappe
     volumes:
       - .:/workspace
-    restart: unless-stopped
-    networks:
-      - traefik_net
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.frappe.rule=Host(`lms.techdome.io`)"
-      - "traefik.http.routers.frappe.entrypoints=websecure"
-      - "traefik.http.routers.frappe.tls.certresolver=myresolver"
-      - "traefik.http.services.frappe.loadbalancer.server.port=8000"
-
-  traefik:
-    image: "traefik:v2.2"
-    container_name: "traefik"
-    command:
-      # this can be uncommented to get more information, in case something doesn't work
-      - "--log.level=DEBUG"
-      # set this to true to get access to the traefik web interface unter http://YOURIP:8080
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=true"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-      - "--entrypoints.web.http.redirections.entryPoint.to=:443"
-      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
-      - "--entrypoints.web.http.redirections.entrypoint.priority=10"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-      - "--entrypoints.frapperedirect.address=:8000"
-      - "--entrypoints.frapperedirect.http.redirections.entrypoint.to=websecure"
-      - "--entrypoints.frapperedirect.http.redirections.entrypoint.scheme=https"
-      - "--entrypoints.frapperedirect.http.redirections.entrypoint.permanent=true"
-      - "--entrypoints.frapperedirect.http.redirections.entrypoint.priority=20"   
     ports:
-      - "80:80"
-      - "443:443"
-      - "8000:8000"
-      - "8080:8080" # this is used for the web interface, that let's you check and monitor traefik and your configuration. It's very nice for debugging your config - only available if "api.insecure" above is set to true
-    volumes:
-      - "./letsencrypt:/letsencrypt"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-    restart: unless-stopped
-    networks:
-      - traefik_net
-    labels:
-      - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
-      - "traefik.http.routers.http-catchall.entrypoints=web"
-      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-
-networks:
-  traefik_net:
-    external: true
+      - 8420:8000
+      - 9000:9000
 
 volumes:
   mariadb-data:
